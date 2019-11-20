@@ -3,6 +3,7 @@ var auth = require("./auth.json");
 const top100 = require("./commands/top100/main");
 const account = require("./commands/account/main");
 const spy = require("./commands/espia/main");
+const greet = require("./commands/greet/main");
 // Initialize Discord Bot
 var bot = new Discord.Client({
   token: auth.botToken,
@@ -34,10 +35,7 @@ bot.on("message", function(user, userID, channelID, message, evt) {
         spy.getEnemyRanks(bot, channelID, userID, args.slice(2).join(" "));
         break;
       case "hola":
-        bot.sendMessage({
-          to: channelID,
-          message: `Hola. Te amo <@${userID}>`
-        });
+        greet.greet(bot, channelID, userID);
         break;
       case "registrame":
       case "regístrame":
