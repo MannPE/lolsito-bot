@@ -1,9 +1,9 @@
 exports.greet = async (bot, channelId, userId) => {
   const possibleGreetings = [
     `Qué quieres? <@${userId}>`,
-    `Hola, te amo <3 <@${userId}`,
+    `Hola, te amo <3 <@${userId}>`,
     `Capitan lolsito de servicio`,
-    `Deja de spamear por favor <@${userId}`
+    `Deja de spamear por favor <@${userId}>`
   ];
 
   let message =
