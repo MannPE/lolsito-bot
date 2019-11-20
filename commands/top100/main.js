@@ -1,4 +1,8 @@
 const commandName = "top100";
+const CHAMPIONS = require("./../../data_dragon/champions.json");
+const matchApi = require("./../../leagueApi/match");
+const summonerApi = require("./../../leagueApi/summoner");
+let ACCOUNTS = require("./../../maxshi2sData/accounts.json");
 
 exports.getTop100 = async (bot, channelID, name) => {
   try {
@@ -23,23 +27,24 @@ exports.getTop100 = async (bot, channelID, name) => {
     } else {
       bot.sendMessage({
         to: channelID,
-        message: `Diganle al Zira que esta madre esta caida - ${commandName}`
+        message: `Diganle al Mani que esta madre esta caida - ${commandName}`
       });
     }
   }
 };
-const https = require("https");
-const RIOT_TOKEN = "RGAPI-9b2aad45-0d2a-4452-9edf-b027b52132d9";
-const CHAMPIONS = require("./../../data_dragon/champions.json"); //(with path)
 
 async function getRecentMostPlayedchamps(summonerName) {
   return new Promise(async function(resolve, reject) {
     try {
       console.log("the summoner id is:", summonerName);
-      let summonerInfo = await getSummonerInfoByName(summonerName);
+      let summonerInfo = null;
+      if (!summonerName || summonerName.length < 4) {
+        summonerInfo = await summonerApi.getSummonerInfoByName(summonerName);
+      } else {
+        summonerInfo = await summonerApi.getSummonerInfoByName(summonerName);
+      }
       console.log(summonerInfo);
-      let matchList = await getMatchList(summonerInfo.accountId);
-      //console.log(matchList);
+      let matchList = await matchApi.getMatchList(summonerInfo.accountId);
       let charMap = new Map();
 
       Array.from(matchList.matches).forEach(match => {
@@ -71,70 +76,5 @@ async function getRecentMostPlayedchamps(summonerName) {
     } catch (err) {
       reject({ type: "API ERROR" });
     }
-  });
-}
-
-async function getSummonerInfoByName(name) {
-  let options = {
-    hostname: "la1.api.riotgames.com",
-    path: `/lol/summoner/v4/summoners/by-name/${escape(name)}`,
-    method: "GET",
-    headers: {
-      "X-Riot-Token": RIOT_TOKEN
-    }
-  };
-  return new Promise(function(resolve, reject) {
-    https
-      .get(options, resp => {
-        let data = "";
-
-        // A chunk of data has been recieved.
-        resp.on("data", chunk => {
-          data += chunk;
-        });
-
-        // The whole response has been received. Print out the result.
-        resp.on("end", () => {
-          let newData = JSON.parse(data);
-          resolve(newData);
-        });
-      })
-      .on("error", err => {
-        reject();
-        console.log("Error: " + err.message);
-      });
-  });
-}
-
-async function getMatchList(accountId) {
-  let options = {
-    hostname: "la1.api.riotgames.com",
-    path: `/lol/match/v4/matchlists/by-account/${escape(accountId)}`,
-    method: "GET",
-    headers: {
-      "X-Riot-Token": RIOT_TOKEN
-    }
-  };
-  console.log("REQUEST WITH:", options);
-  return new Promise(function(resolve, reject) {
-    https
-      .get(options, resp => {
-        let data = "";
-
-        // A chunk of data has been recieved.
-        resp.on("data", chunk => {
-          data += chunk;
-        });
-
-        // The whole response has been received. Print out the result.
-        resp.on("end", () => {
-          let newData = JSON.parse(data);
-          resolve(newData);
-        });
-      })
-      .on("error", err => {
-        reject();
-        console.log("Error: " + err.message);
-      });
   });
 }

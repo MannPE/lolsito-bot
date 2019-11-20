@@ -1,47 +1,47 @@
 var Discord = require("discord.io");
-var logger = require("winston");
 var auth = require("./auth.json");
 const top100 = require("./commands/top100/main");
-// Configure logger settings
-logger.remove(logger.transports.Console);
-logger.add(new logger.transports.Console(), {
-  colorize: true
-});
-logger.level = "debug";
+const account = require("./commands/account/main");
+const spy = require("./commands/espia/main");
 // Initialize Discord Bot
 var bot = new Discord.Client({
-  token: auth.token,
+  token: auth.botToken,
   autorun: true
 });
 bot.on("ready", function(evt) {
-  logger.info("Connected");
-  logger.info("Logged in as: ");
-  logger.info(bot.username + " - (" + bot.id + ")");
+  console.log("Connected");
+  console.log("Logged in as: ");
+  console.log(bot.username + " - (" + bot.id + ")");
 });
 bot.on("message", function(user, userID, channelID, message, evt) {
   // Our bot needs to know if it will execute a command
-  // It will listen for messages that will start with `!`
-  logger.info(`Reading a message ${message}- from ${user}`);
-  if (message.startsWith("lolsito ") || message.startsWith("@lolsito ")) {
+  console.log(`~~Reading a message from ${user}(${userID})`, message);
+  if (
+    message.startsWith("lolsito ") ||
+    message.startsWith("@lolsito ") ||
+    message.startsWith("<@646462052885463060>")
+  ) {
     var args = message.split(" ");
-    logger.info(`ARGS FOR THIS MESSAGE: ${args}`);
+    console.log(`ARGS FOR THIS MESSAGE: ${args}`);
     var cmd = args[1];
-    logger.info(`ARGS FOR THIS MESSAGE: ${args}`);
+    console.log(`ARGS FOR THIS MESSAGE: ${args}`);
 
-    logger.info(args);
+    console.log(args);
     switch (cmd) {
       // !ping
+      case "espia":
+      case "espía":
+        spy.getEnemyRanks(bot, channelID, userID, args.slice(2).join(" "));
+        break;
       case "hola":
         bot.sendMessage({
           to: channelID,
-          message: `Hola. Te amo @${user}`
+          message: `Hola. Te amo <@${userID}>`
         });
         break;
       case "registrame":
-        bot.sendMessage({
-          to: channelID,
-          message: `Ok asocie tu cuenta de discord con el usuario: ${args[0]}`
-        });
+      case "regístrame":
+        account.register(bot, channelID, userID, args.slice(2).join(" "));
         break;
       case "top100":
         top100.getTop100(bot, channelID, args.slice(2).join(" "));
