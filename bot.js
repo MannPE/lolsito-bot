@@ -17,10 +17,11 @@ bot.on("ready", function(evt) {
 bot.on("message", function(user, userID, channelID, message, evt) {
   // Our bot needs to know if it will execute a command
   console.log(`~~Reading a message from ${user}(${userID})`, message);
+  let lowercaseMessage = message.toLowerCase();
   if (
-    message.startsWith("lolsito ") ||
-    message.startsWith("@lolsito ") ||
-    message.startsWith("<@646462052885463060>")
+    lowercaseMessage.startsWith("lolsito ") ||
+    lowercaseMessage.startsWith("@lolsito ") ||
+    lowercaseMessage.startsWith("<@646462052885463060> ")
   ) {
     var args = message.split(" ");
     console.log(`ARGS FOR THIS MESSAGE: ${args}`);
