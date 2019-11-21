@@ -5,7 +5,9 @@
   "main": "bot.js",
   "author": "Your Name",
   "dependencies": {
+    "@types/node": "^12.12.11",
     "discord.io": "github:woor/discord.io#gateway_v6",
+    "discord.js": "^11.5.1",
     "winston": "^3.2.1"
   },
   "scripts": {

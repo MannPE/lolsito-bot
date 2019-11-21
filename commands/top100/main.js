@@ -4,13 +4,12 @@ const matchApi = require("./../../leagueApi/match");
 const summonerApi = require("./../../leagueApi/summoner");
 let ACCOUNTS = require("./../../maxshi2sData/accounts.json");
 
-exports.getTop100 = async (bot, channelID, name) => {
+exports.getTop100 = async (bot, channelID, userId, name) => {
   try {
-    let champions = await getRecentMostPlayedchamps(name);
+    let champions = await getRecentMostPlayedchamps(name, userId);
     let newString = "";
     for (let i = 0; i < 10; i++) {
       const champion = champions[i];
-      console.log("analizando:", champion);
       if (!champion) break;
       newString += `\n${champion[0]} - ${champion[1]}`;
     }
@@ -33,17 +32,15 @@ exports.getTop100 = async (bot, channelID, name) => {
   }
 };
 
-async function getRecentMostPlayedchamps(summonerName) {
+async function getRecentMostPlayedchamps(summonerName, userId) {
   return new Promise(async function(resolve, reject) {
     try {
-      console.log("the summoner id is:", summonerName);
       let summonerInfo = null;
-      if (!summonerName || summonerName.length < 4) {
+      if (summonerName && summonerName.length > 3) {
         summonerInfo = await summonerApi.getSummonerInfoByName(summonerName);
       } else {
-        summonerInfo = await summonerApi.getSummonerInfoByName(summonerName);
+        summonerInfo = ACCOUNTS[userId];
       }
-      console.log(summonerInfo);
       let matchList = await matchApi.getMatchList(summonerInfo.accountId);
       let charMap = new Map();
 
@@ -60,18 +57,11 @@ async function getRecentMostPlayedchamps(summonerName) {
           return y[1] - x[1];
         })
         .map(entry => {
-          // console.log(Object.values(CHAMPIONS.data)[0]);
           let champ = Object.values(CHAMPIONS.data).find(
             x => x.key == entry[0]
           );
           return [!!champ ? champ.name : entry[0], entry[1]];
         });
-      console.log(
-        "Los PJ mas jugados de:",
-        summonerInfo.name,
-        "\n",
-        mostPlayedChamps
-      );
       resolve(mostPlayedChamps);
     } catch (err) {
       reject({ type: "API ERROR" });

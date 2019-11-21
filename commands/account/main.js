@@ -25,7 +25,6 @@ exports.register = async (bot, channelID, userId, accountName) => {
               __dirname + "/../../maxshi2sData/accounts.json",
               JSON.stringify(ACCOUNTS),
               cb => {
-                console.log("Finished updating file:", cb);
                 ACCOUNTS = require("./../../maxshi2sData/accounts.json"); //(with path)
               }
             );

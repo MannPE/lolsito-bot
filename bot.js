@@ -2,8 +2,12 @@ var Discord = require("discord.io");
 var auth = require("./auth.json");
 const top100 = require("./commands/top100/main");
 const account = require("./commands/account/main");
-const spy = require("./commands/espia/main");
+const spy = require("./commands/spy/main");
+const leagues = require("./commands/rank/main");
 const greet = require("./commands/greet/main");
+var rlh = require("./leagueApi/requestLimitHelper");
+const requestHelper = rlh.RequestHelper.instance;
+
 // Initialize Discord Bot
 var bot = new Discord.Client({
   token: auth.botToken,
@@ -11,7 +15,6 @@ var bot = new Discord.Client({
 });
 bot.on("ready", function(evt) {
   console.log("Connected");
-  console.log("Logged in as: ");
   console.log(bot.username + " - (" + bot.id + ")");
 });
 bot.on("message", function(user, userID, channelID, message, evt) {
@@ -24,11 +27,8 @@ bot.on("message", function(user, userID, channelID, message, evt) {
     lowercaseMessage.startsWith("<@646462052885463060> ")
   ) {
     var args = message.split(" ");
+    var cmd = args[1].toLowerCase();
     console.log(`ARGS FOR THIS MESSAGE: ${args}`);
-    var cmd = args[1];
-    console.log(`ARGS FOR THIS MESSAGE: ${args}`);
-
-    console.log(args);
     switch (cmd) {
       // !ping
       case "espia":
@@ -42,8 +42,11 @@ bot.on("message", function(user, userID, channelID, message, evt) {
       case "regístrame":
         account.register(bot, channelID, userID, args.slice(2).join(" "));
         break;
+      case "rank":
+        leagues.getRank(bot, channelID, userID, args.slice(2).join(" "));
+        break;
       case "top100":
-        top100.getTop100(bot, channelID, args.slice(2).join(" "));
+        top100.getTop100(bot, channelID, userID, args.slice(2).join(" "));
         break;
       default:
         bot.sendMessage({
