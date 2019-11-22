@@ -1,0 +1,59 @@
+import { Message, Client } from 'discord.js';
+var Discord = require('discord.js');
+var auth = require('./auth.json');
+const top100 = require('./commands/top100/main');
+const account = require('./commands/account/main');
+const spy = require('./commands/spy/main');
+const leagues = require('./commands/rank/main');
+const greet = require('./commands/greet/main');
+const validBotTriggers = [
+  'lolsito ',
+  '<@646462052885463060> ',
+  '!lolsito ',
+  '/lolsito ',
+  '@lolsito '
+];
+
+// Initialize Discord Bot
+var bot: Client = new Discord.Client();
+bot.on('ready', () => {
+  console.log(`Connected as ${bot.user.tag}`);
+});
+bot.on('message', (message: Message) => {
+  const { content, channel, author } = message;
+  console.log(`~~Reading a message from ${author}(${author.id})`, content);
+  let lowercaseMessage = content.toLowerCase();
+  let botCommandIssued = false;
+  if (validBotTriggers.some(botTriggerString => lowercaseMessage.startsWith(botTriggerString))) {
+    botCommandIssued = true;
+  }
+  if (botCommandIssued) {
+    var args = content.split(' ');
+    var cmd = args[1].toLowerCase();
+    console.log(`ARGS FOR THIS MESSAGE: ${args}`);
+    switch (cmd) {
+      // !ping
+      case 'espia':
+      case 'espía':
+        spy.getEnemyRanks(channel, author, args.slice(2).join(' '));
+        break;
+      case 'hola':
+        greet.greet(channel, author);
+        break;
+      case 'registrame':
+      case 'regístrame':
+        account.register(channel, author, args.slice(2).join(' '));
+        break;
+      case 'rank':
+        leagues.getRank(channel, author, args.slice(2).join(' '));
+        break;
+      case 'top100':
+        top100.getTop100(channel, author, args.slice(2).join(' '));
+        break;
+      default:
+        message.channel.send('Así no se usa el bot brgas e.e');
+    }
+  }
+});
+
+bot.login(auth.botToken);

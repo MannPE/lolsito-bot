@@ -13,18 +13,13 @@ module.exports.RequestHelper = class RequestHelper {
 
   requestIsAllowed(headers) {
     let timeStamp = Date.now();
-    let recentRequests = this.requestsMadeInLastTimeFrame(
-      timeStamp,
-      this.apiLimitTimeFrame
-    );
+    let recentRequests = this.requestsMadeInLastTimeFrame(timeStamp, this.apiLimitTimeFrame);
+    this.removeOldRequests();
     console.log(
-      `CurrentRequestCount =  ${Object.keys(this.lastRequests).length}/${
-        this.apiRequestCountLimit
-      }`
+      `CurrentRequestCount =  ${Object.keys(this.lastRequests).length}/${this.apiRequestCountLimit}`
     );
     if (Object.keys(recentRequests).length >= this.apiRequestCountLimit - 1) {
-      console.log("Reached limit of requests available");
-      removeOldRequests();
+      console.log('Reached limit of requests available');
       return false;
     } else {
       this.lastRequests[timeStamp] = headers;
@@ -41,8 +36,7 @@ module.exports.RequestHelper = class RequestHelper {
 
   removeOldRequests() {
     let olderRequests = Object.keys(this.lastRequests).filter(
-      requestTimestamp =>
-        requestTimestamp <= Date.now() - this.apiLimitTimeFrame
+      requestTimestamp => requestTimestamp <= Date.now() - this.apiLimitTimeFrame
     );
     olderRequests.forEach(key => delete this.lastRequests[key]);
   }
