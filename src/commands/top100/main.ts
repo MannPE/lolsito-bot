@@ -13,7 +13,7 @@ exports.getTop100 = async (channel: TextChannel, user: User, summonerName: strin
     } else {
       summonerInfo = ACCOUNTS[user.id];
     }
-    let champions: any = await getRecentMostPlayedchamps(summonerInfo.accountId, user.id);
+    let champions: any = await getRecentMostPlayedchamps(summonerInfo.accountId);
     let newString = '';
     for (let i = 0; i < 10; i++) {
       const champion = champions[i];
@@ -32,7 +32,7 @@ exports.getTop100 = async (channel: TextChannel, user: User, summonerName: strin
   }
 };
 
-async function getRecentMostPlayedchamps(accountId: string, userId: string) {
+async function getRecentMostPlayedchamps(accountId: string) {
   return new Promise(async function(resolve, reject) {
     try {
       let matchList = await matchApi.getMatchList(accountId);

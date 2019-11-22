@@ -13,10 +13,12 @@
   "devDependencies": {
     "@types/node": "^12.12.11",
     "@typescript-eslint/eslint-plugin": "^2.8.0",
+    "copy-dir": "^1.2.0",
     "eslint": "^6.6.0",
     "eslint-config-airbnb-typescript": "^6.3.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.1",
+    "fs-extra": "^8.1.0",
     "prettier": "^1.19.1",
     "ts-node": "^8.5.2",
     "ts-node-dev": "^1.0.0-pre.44",
@@ -27,7 +29,7 @@
     "build": "tsc",
     "lint": "eslint . & echo 'lint complete'",
     "dev": "ts-node-dev --respawn --transpileOnly src/bot.ts",
-    "prod": "tsc && node ./build/src/bot.js",
-    "debug": "tsc && node --inspect ./build/src/bot.js"
+    "prod": "tsc && node ./post-build/prod.js && node ./build/bot.js",
+    "debug": "tsc && node --inspect ./build/bot.js"
   }
 }
