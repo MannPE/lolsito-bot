@@ -65,5 +65,5 @@ bot.on('message', (message: Message) => {
     }
   }
 });
-
+console.log('should login soon./..');
 bot.login(auth.botToken);

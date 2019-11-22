@@ -1,6 +1,7 @@
 const leagueApi = require('./../../leagueApi/league');
-const summonerApi = require('./../../leagueApi/summoner');
+const requestHelper = require('./../../leagueApi/requestLimitHelper').RequestHelper.instance;
 import { User, TextChannel } from 'discord.js';
+import { SummonerInfo } from 'pyke';
 
 const emotes = {
   CHALLENGER: ':flag_kr:',
@@ -15,9 +16,17 @@ const emotes = {
 };
 
 exports.getRank = async (channel: TextChannel, user: User, summonerName: string) => {
-  let summonerInfo = null;
+  let summonerInfo: SummonerInfo = null;
   if (summonerName && summonerName.length > 3) {
-    summonerInfo = await summonerApi.getSummonerInfoByName(summonerName);
+    try {
+      summonerInfo = await requestHelper
+        .getLeagueClient()
+        .summoner.getBySummonerName(summonerName, 'la1');
+    } catch (err) {
+      console.log('had an error when getching summonerName', err);
+    }
+    console.log('register newSummoner');
+    // summonerInfo = await summonerApi.getSummonerInfoByName(summonerName);
   } else {
     const ACCOUNTS = require('./../../maxshi2sData/accounts.json');
     summonerInfo = ACCOUNTS[user.id];

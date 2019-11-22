@@ -2,6 +2,8 @@ const commandName = 'top100';
 import { User, TextChannel } from 'discord.js';
 let ACCOUNTS = require('./../../maxshi2sData/accounts.json');
 const summonerApi = require('./../../leagueApi/summoner');
+const { Pyke } = require('pyke');
+const pyke = new Pyke('');
 const fs = require('fs');
 
 exports.register = async (channel: TextChannel, user: User, accountName: string) => {
@@ -11,7 +13,9 @@ exports.register = async (channel: TextChannel, user: User, accountName: string)
     else {
       if (accountName && accountName.length > 3) {
         try {
-          let newSummoner = await summonerApi.getSummonerInfoByName(accountName);
+          // let newSummoner = await summonerApi.getSummonerInfoByName(accountName);
+          let newSummoner = pyke.summoner.getBySummonerName();
+          console.log('register newSummoner');
           if (newSummoner) {
             ACCOUNTS[user.id] = newSummoner;
             channel.send(`<@${user.id}> ahora estás asociad@ a la cuenta: ${newSummoner.name}`);

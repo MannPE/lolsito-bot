@@ -1,8 +1,15 @@
+const pykeLib = require('pyke');
+const auth = require('./../auth.json');
+import { Pyke } from 'pyke';
+import { OutgoingHttpHeaders } from 'http';
+
 module.exports.RequestHelper = class RequestHelper {
   apiLimitTimeFrame = 12000; // 2 minutes in ms
   apiRequestCountLimit = 100; // 100 requests per 2 minutes
-  static __instance;
-  lastRequests = {};
+  static __instance: RequestHelper;
+  pyke: Pyke = new pykeLib.Pyke(auth.riotToken);
+
+  lastRequests: Map<number, OutgoingHttpHeaders> = new Map();
 
   static get instance() {
     if (!RequestHelper.__instance) {
@@ -11,7 +18,7 @@ module.exports.RequestHelper = class RequestHelper {
     return RequestHelper.__instance;
   }
 
-  requestIsAllowed(headers) {
+  requestIsAllowed(headers: OutgoingHttpHeaders) {
     let timeStamp = Date.now();
     let recentRequests = this.requestsMadeInLastTimeFrame(timeStamp, this.apiLimitTimeFrame);
     this.removeOldRequests();
@@ -22,22 +29,26 @@ module.exports.RequestHelper = class RequestHelper {
       console.log('Reached limit of requests available');
       return false;
     } else {
-      this.lastRequests[timeStamp] = headers;
+      this.lastRequests.set(timeStamp, headers);
       return true;
     }
   }
 
-  requestsMadeInLastTimeFrame(timestamp, difference) {
-    let recentRequests = Object.keys(this.lastRequests).filter(
+  requestsMadeInLastTimeFrame(timestamp: number, difference: number) {
+    let recentRequests = Array.from(this.lastRequests.keys()).filter(
       requestTimestamp => requestTimestamp > timestamp - difference
     );
     return recentRequests;
   }
 
   removeOldRequests() {
-    let olderRequests = Object.keys(this.lastRequests).filter(
+    let olderRequests: number[] = Array.from(this.lastRequests.keys()).filter(
       requestTimestamp => requestTimestamp <= Date.now() - this.apiLimitTimeFrame
     );
-    olderRequests.forEach(key => delete this.lastRequests[key]);
+    olderRequests.forEach(key => this.lastRequests.delete(key));
+  }
+
+  getLeagueClient(): Pyke {
+    return this.pyke;
   }
 };
