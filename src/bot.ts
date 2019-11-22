@@ -3,6 +3,7 @@ var Discord = require('discord.js');
 var auth = require('./auth.json');
 const top100 = require('./commands/top100/main');
 const account = require('./commands/account/main');
+const pickChamp = require('./commands/pickChamp/main');
 const spy = require('./commands/spy/main');
 const leagues = require('./commands/rank/main');
 const greet = require('./commands/greet/main');
@@ -49,6 +50,15 @@ bot.on('message', (message: Message) => {
         break;
       case 'top100':
         top100.getTop100(channel, author, args.slice(2).join(' '));
+        break;
+      case 'escoge':
+        pickChamp.random(
+          channel,
+          args
+            .slice(2)
+            .join(' ')
+            .toLowerCase()
+        );
         break;
       default:
         message.channel.send('Así no se usa el bot brgas e.e');
