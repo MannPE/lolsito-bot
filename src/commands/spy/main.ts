@@ -1,7 +1,8 @@
 const CHAMPIONS = require('./../../data_dragon/champions.json'); //(with path)
 import { User, TextChannel } from 'discord.js';
 const requestHelper = require('./../../leagueApi/requestLimitHelper').RequestHelper.instance;
-import { SummonerInfo } from 'pyke';
+import { SummonerInfo, PositionId } from 'pyke';
+var Discord = require('discord.js');
 
 exports.getEnemyRanks = async (channel: TextChannel, user: User, summonerName: string) => {
   let summonerInfo: SummonerInfo = null;
@@ -25,8 +26,9 @@ exports.getEnemyRanks = async (channel: TextChannel, user: User, summonerName: s
       console.log('error getting game info', e);
     }
     if (currentGameInfo && currentGameInfo.gameId) {
-      let responseMsg = ` *${summonerInfo.name}* - ${currentGameInfo.gameMode}\n`;
-      responseMsg += await createSpyResponseNormalGame(currentGameInfo.participants);
+      // let responseMsg = ` *${summonerInfo.name}* - ${currentGameInfo.gameMode}\n`;
+      // responseMsg += await createSpyResponseNormalGame(currentGameInfo.participants);
+      let responseMsg = await getParticipantsWithRank(summonerInfo, currentGameInfo);
       channel.send(responseMsg);
     } else {
       channel.send(
@@ -68,36 +70,64 @@ async function createSpyResponseNormalGame(participants: MatchMember[]) {
   return responseMsg;
 }
 
-// async function getParticipantsWithRank(summonerInfo, currentGameInfo) {
-//   const participants = currentGameInfo.participants;
-//   let chaos = [];
-//   let order = [];
-//   let participantInfoPromises = [];
+async function getParticipantsWithRank(summonerInfo: SummonerInfo, currentGameInfo: any) {
+  const participants = currentGameInfo.participants;
+  let chaos: MatchMember[] = [];
+  let order: MatchMember[] = [];
+  let participantInfoPromises: Promise<{ name: string; ranks: PositionId }>[] = [];
 
-//   participants.forEach(summoner => {
-//     if (summoner.teamId == 100) order.push(summoner);
-//     else chaos.push(summoner);
-//     participantInfoPromises.push(new Promise());
-//   });
+  participants.forEach((summoner: any) => {
+    if (summoner.teamId == 100) order.push(summoner);
+    else chaos.push(summoner);
+    participantInfoPromises.push(
+      new Promise(async (resolve, reject) => {
+        try {
+          let res = await requestHelper
+            .getLeagueClient()
+            .league.getAllLeaguePositionsForSummoner(summoner.summonerId, 'la1');
+          let obj: any = {};
+          obj.name = summoner.summonerName;
+          obj.ranks = res;
+          resolve(obj);
+        } catch (e) {
+          reject(e);
+        }
+      })
+    );
+  });
 
-//   Promise.all().then(results => {});
-//   let orderMsg = '';
+  let allRanks: Map<string, PositionId> = new Map();
+  await Promise.all(participantInfoPromises).then(
+    (results: { name: string; ranks: PositionId }[]) => {
+      // console.log('ALL THE INFO FOR THE USERS:', results);
+      results.forEach(result => {
+        allRanks.set(result.name, result.ranks);
+      });
+    }
+  );
+  console.log('\n\n ------ALL RANKS HERE -----\n\n', allRanks);
+  let orderMsg = '';
 
-//   for (let i = 0; i < order.length; i++) {
-//     const champ = Object.values(CHAMPIONS.data).find(x => x.key == order[i].championId);
-//     orderMsg += `* ${order[i].summonerName} - ${champ.name} \n`;
-//   }
-//   let chaosMsg = '';
+  for (let i = 0; i < order.length; i++) {
+    const champ: any = Object.values(CHAMPIONS.data).find((x: any) => x.key == order[i].championId);
+    let ranks = allRanks.get(order[i].summonerName);
+    console.log('rank for', order[i].summonerName, 'is', ranks.RANKED_SOLO_5x5.tier);
+    orderMsg += `* ${order[i].summonerName} - ${champ.name} -${ranks.RANKED_SOLO_5x5.tier ||
+      ranks.RANKED_FLEX_SR.tier}\n`;
+  }
+  let chaosMsg = '';
 
-//   for (let i = 0; i < chaos.length; i++) {
-//     const champ = Object.values(CHAMPIONS.data).find(x => x.key == chaos[i].championId);
-//     chaosMsg += `* ${chaos[i].summonerName} - ${champ.name}\n`;
-//   }
-//   let responseEmbed = new Discord.RichEmbed()
-//     .setTitle(`${summonerInfo.name} - *${currentGameInfo.gameMode}*\n`)
-//     .addField('Orden', orderMsg)
-//     .addField('Caos', chaosMsg)
-//     .setTimestamp();
+  for (let i = 0; i < chaos.length; i++) {
+    const ranks = allRanks.get(chaos[i].summonerName);
+    const champ: any = Object.values(CHAMPIONS.data).find((x: any) => x.key == chaos[i].championId);
+    chaosMsg += `* ${chaos[i].summonerName} - ${champ.name}-${ranks.RANKED_SOLO_5x5.tier ||
+      ranks.RANKED_FLEX_SR.tier}\n`;
+  }
+  let responseEmbed = new Discord.RichEmbed()
+    .setTitle(`${summonerInfo.name} - *${currentGameInfo.gameMode}*\n`)
+    .addField('Orden', orderMsg, true)
+    .addField('Caos', chaosMsg, true)
+    .setTimestamp();
 
-//   return responseEmbed;
-// }
+  return responseEmbed;
+}
