@@ -1,18 +1,23 @@
 const commandName = 'top100';
 const CHAMPIONS = require('./../../data_dragon/champions.json');
-const matchApi = require('./../../leagueApi/match');
-const summonerApi = require('./../../leagueApi/summoner');
 let ACCOUNTS = require('./../../maxshi2sData/accounts.json');
+const requestHelper = require('./../../leagueApi/requestLimitHelper').RequestHelper.instance;
+import { SummonerInfo } from 'pyke';
+
 import { User, TextChannel } from 'discord.js';
 
 exports.getTop100 = async (channel: TextChannel, user: User, summonerName: string) => {
+  let summonerInfo: SummonerInfo = null;
   try {
-    let summonerInfo = null;
+    console.log('got summoner:', summonerInfo);
     if (summonerName && summonerName.length > 3) {
-      summonerInfo = await summonerApi.getSummonerInfoByName(summonerName);
+      summonerInfo = await requestHelper
+        .getLeagueClient()
+        .summoner.getBySummonerName(summonerName, 'la1');
     } else {
       summonerInfo = ACCOUNTS[user.id];
     }
+    console.log('summoner:', summonerInfo);
     let champions: any = await getRecentMostPlayedchamps(summonerInfo.accountId);
     let newString = '';
     for (let i = 0; i < 10; i++) {
@@ -25,17 +30,24 @@ exports.getTop100 = async (channel: TextChannel, user: User, summonerName: strin
     );
   } catch (e) {
     if (e.type) {
-      channel.send(`No pude encontrar a ${summonerName} :'c`);
+      channel.send(
+        `No pude encontrar partidas de ${summonerInfo ? summonerInfo.name : summonerName} :'c`
+      );
+      console.log('Error', e);
     } else {
       channel.send(`Diganle al Mani que esta madre esta caida - ${commandName}`);
     }
   }
 };
 
-async function getRecentMostPlayedchamps(accountId: string) {
-  return new Promise(async function(resolve, reject) {
+async function getRecentMostPlayedchamps(accountId: String) {
+  return new Promise(async (resolve, reject) => {
     try {
-      let matchList = await matchApi.getMatchList(accountId);
+      console.log('getting matchlist for ', accountId);
+      let matchList: any = await requestHelper
+        .getLeagueClient()
+        .match.getMatchlist(accountId, 'la1');
+      console.log('matches:', matchList);
       let charMap = new Map();
 
       Array.from(matchList.matches).forEach((match: any) => {
@@ -56,6 +68,7 @@ async function getRecentMostPlayedchamps(accountId: string) {
         });
       resolve(mostPlayedChamps);
     } catch (err) {
+      console.log('error ', err);
       reject({ type: 'API ERROR' });
     }
   });

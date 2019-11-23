@@ -1,7 +1,6 @@
-const leagueApi = require('./../../leagueApi/league');
 const requestHelper = require('./../../leagueApi/requestLimitHelper').RequestHelper.instance;
 import { User, TextChannel } from 'discord.js';
-import { SummonerInfo } from 'pyke';
+import { SummonerInfo, PositionId } from 'pyke';
 
 const emotes = {
   CHALLENGER: ':flag_kr:',
@@ -33,9 +32,18 @@ exports.getRank = async (channel: TextChannel, user: User, summonerName: string)
   }
   console.log('Looking at a game for summoner:', summonerInfo);
   if (summonerInfo && summonerInfo.id) {
-    let summonerLeagues = await leagueApi.getLeaguesBySummonerId(summonerInfo.id);
-    if (summonerLeagues && summonerLeagues.length > 0) {
-      let response = buildResponseMessage(summonerInfo, summonerLeagues);
+    let summonerLeagues: PositionId = await requestHelper
+      .getLeagueClient()
+      .league.getAllLeaguePositionsForSummoner(summonerInfo.id, 'la1');
+
+    console.log('Leagues:', summonerLeagues);
+    // await leagueApi.getLeaguesBySummonerId(summonerInfo.id);
+    const leagueArray: any[] = Object.values(summonerLeagues.all).filter(
+      league => league.tier != 'Unranked'
+    );
+
+    if (summonerLeagues && leagueArray.length > 0) {
+      let response = buildResponseMessage(summonerInfo, leagueArray);
       channel.send(response);
     } else {
       channel.send(`${summonerInfo.name} es gay y no juega rankeds <3 `);

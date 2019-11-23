@@ -1,18 +1,29 @@
 const CHAMPIONS = require('./../../data_dragon/champions.json'); //(with path)
-const matchApi = require('./../../leagueApi/match');
-const summonerApi = require('./../../leagueApi/summoner');
 import { User, TextChannel } from 'discord.js';
+const requestHelper = require('./../../leagueApi/requestLimitHelper').RequestHelper.instance;
+import { SummonerInfo } from 'pyke';
 
 exports.getEnemyRanks = async (channel: TextChannel, user: User, summonerName: string) => {
-  let summonerInfo = null;
+  let summonerInfo: SummonerInfo = null;
   if (summonerName && summonerName.length > 3) {
-    summonerInfo = await summonerApi.getSummonerInfoByName(summonerName);
+    summonerInfo = await requestHelper
+      .getLeagueClient()
+      .summoner.getBySummonerName(summonerName, 'la1');
   } else {
     const ACCOUNTS = require('./../../maxshi2sData/accounts.json');
     summonerInfo = ACCOUNTS[user.id];
   }
+  console.log('Spying summoner info:', summonerInfo);
   if (summonerInfo && summonerInfo.id) {
-    let currentGameInfo = await matchApi.getCurrentGameInfo(summonerInfo.id);
+    let currentGameInfo = null;
+    try {
+      currentGameInfo = await requestHelper
+        .getLeagueClient()
+        .spectator.getCurrentGameInfoBySummoner(summonerInfo.id, 'la1');
+      console.log('gameID:', currentGameInfo);
+    } catch (e) {
+      console.log('error getting game info', e);
+    }
     if (currentGameInfo && currentGameInfo.gameId) {
       let responseMsg = ` *${summonerInfo.name}* - ${currentGameInfo.gameMode}\n`;
       responseMsg += await createSpyResponseNormalGame(currentGameInfo.participants);

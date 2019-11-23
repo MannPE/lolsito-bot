@@ -1,7 +1,6 @@
 const commandName = 'top100';
 import { User, TextChannel } from 'discord.js';
 let ACCOUNTS = require('./../../maxshi2sData/accounts.json');
-const summonerApi = require('./../../leagueApi/summoner');
 const { Pyke } = require('pyke');
 const pyke = new Pyke('');
 const fs = require('fs');
