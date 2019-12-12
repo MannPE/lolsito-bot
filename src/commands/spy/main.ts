@@ -46,29 +46,29 @@ type MatchMember = {
   summonerName: string;
 };
 
-//TODO remove any from the champions ddragon JSON and look for a type
-async function createSpyResponseNormalGame(participants: MatchMember[]) {
-  let responseMsg = '';
-  let chaos: MatchMember[] = [];
-  let order: MatchMember[] = [];
-  participants.forEach(summoner => {
-    if (summoner.teamId == 100) order.push(summoner);
-    else chaos.push(summoner);
-  });
-  responseMsg += 'Orden\n';
+// //TODO remove any from the champions ddragon JSON and look for a type
+// async function createSpyResponseNormalGame(participants: MatchMember[]) {
+//   let responseMsg = '';
+//   let chaos: MatchMember[] = [];
+//   let order: MatchMember[] = [];
+//   participants.forEach(summoner => {
+//     if (summoner.teamId == 100) order.push(summoner);
+//     else chaos.push(summoner);
+//   });
+//   responseMsg += 'Orden\n';
 
-  for (let i = 0; i < order.length; i++) {
-    const champ: any = Object.values(CHAMPIONS.data).find((x: any) => x.key == order[i].championId);
-    responseMsg += `* ${order[i].summonerName} - ${champ.name} \n`;
-  }
-  responseMsg += 'Caos\n';
+//   for (let i = 0; i < order.length; i++) {
+//     const champ: any = Object.values(CHAMPIONS.data).find((x: any) => x.key == order[i].championId);
+//     responseMsg += `* ${order[i].summonerName} - ${champ.name} \n`;
+//   }
+//   responseMsg += 'Caos\n';
 
-  for (let i = 0; i < chaos.length; i++) {
-    const champ: any = Object.values(CHAMPIONS.data).find((x: any) => x.key == chaos[i].championId);
-    responseMsg += `* ${chaos[i].summonerName} - ${champ.name}\n`;
-  }
-  return responseMsg;
-}
+//   for (let i = 0; i < chaos.length; i++) {
+//     const champ: any = Object.values(CHAMPIONS.data).find((x: any) => x.key == chaos[i].championId);
+//     responseMsg += `* ${chaos[i].summonerName} - ${champ.name}\n`;
+//   }
+//   return responseMsg;
+// }
 
 async function getParticipantsWithRank(summonerInfo: SummonerInfo, currentGameInfo: any) {
   const participants = currentGameInfo.participants;

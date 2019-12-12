@@ -2,6 +2,7 @@ import { Message, Client } from 'discord.js';
 var Discord = require('discord.js');
 var auth = require('./auth.json');
 const top100 = require('./commands/top100/main');
+const admin = require('./commands/admin-exchange/main');
 const account = require('./commands/account/main');
 const pickChamp = require('./commands/pickChamp/main');
 const spy = require('./commands/spy/main');
@@ -62,6 +63,25 @@ bot.on('message', (message: Message) => {
         break;
       default:
         message.channel.send('Así no se usa el bot brgas e.e');
+    }
+  } else if (lowercaseMessage.startsWith('intercambio')) {
+    var args = content.split(' ');
+    var cmd = args[1].toLowerCase();
+    console.log(`ARGS FOR THIS MESSAGE: ${args}`);
+    switch (cmd) {
+      // !ping
+      case 'detalles':
+        admin.details(author);
+        break;
+      case 'dime':
+        admin.getExchangeInfo(author);
+        break;
+      case 'admin1996':
+        admin.assignExchangePartners(author);
+        break;
+      case 'champs':
+        args.slice(2);
+        break;
     }
   }
 });
