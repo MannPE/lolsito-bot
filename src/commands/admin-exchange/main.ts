@@ -1,4 +1,4 @@
-import { User } from 'discord.js';
+import { User, Client } from 'discord.js';
 import { getRecentMostPlayedchamps } from '../top100/main';
 const requestHelper = require('./../../leagueApi/requestLimitHelper').RequestHelper.instance;
 const CHAMPIONS = require('./../../data_dragon/champions.json').data;
@@ -24,19 +24,26 @@ exports.viewData = async (user: User) => {
   user.send(finalMsg);
 };
 
-exports.registerChamps = async (user: User, champNames: string[]) => {
-  const accounts = require('./../../maxshi2sData/exchange.json')[user.id];
-  //validate champs
-
-  let realChamps = [];
-  let invalidIds = [];
-  champNames.forEach(champName => {
-    let champOfficialData = CHAMPIONS.find((x: any) => x.name == champName);
-    if (champOfficialData) realChamps.push(champOfficialData);
-    else invalidIds.push(champName);
-  });
-
-  if (invalidIds.length > 0) user.send('Los personajes  ');
+exports.wishlist = async (user: User, unfilteredText: string) => {
+  let exchangeMembers = require('./../../maxshi2sData/exchange.json');
+  let exchangeUser = exchangeMembers[user.id];
+  if (!exchangeUser) return;
+  exchangeUser.additionalInfo = unfilteredText;
+  console.log('new userinfo:', exchangeUser);
+  exchangeMembers[user.id] = exchangeUser;
+  try {
+    fs.writeFile(
+      __dirname + '/../../maxshi2sData/exchange.json',
+      JSON.stringify(exchangeMembers),
+      () => {
+        user.send(
+          `Quien sea que te vaya a dar regalo podrá ver tu mensaje cuando use el comando de "intercambio detalles"`
+        );
+      }
+    );
+  } catch (e) {
+    user.send('No pude guardar tu mensaje :/');
+  }
 };
 
 exports.assignExchangePartners = async (user: User) => {
@@ -76,13 +83,24 @@ exports.assignExchangePartners = async (user: User) => {
       __dirname + '/../../maxshi2sData/exchange.json',
       JSON.stringify(exchangeMembers),
       () => {
-        user.send(`Listo, el intercambio ha comenzado!\nUtiliza el comando "intercambio detalles" para saber mas.
-				\nUtiliza el comanto "interfcambio dime" para ver a quien le daras regalo esta navidad <3`);
+        let finalMatches = '';
+        Object.keys(exchangeMembers).forEach(mem => {
+          finalMatches += `${mem} -> ${exchangeMembers[mem].partner}\n`;
+        });
+        user.send(`Se han reasignado los jugadores la lista es:\n ${finalMatches} `);
       }
     );
   } catch (e) {
     user.send('LAMENTO INFORMAR QUE NO PUDE ASIGNAR EL INTERCAMBIO :C');
   }
+};
+
+exports.messageExchangeUsers = async (bot: Client, message: string) => {
+  const exchangeMembers = require('./../../maxshi2sData/exchange.json');
+  Object.keys(exchangeMembers).forEach(mem => {
+    console.log('trying to send message to:', mem);
+    bot.users.get(mem).send(message);
+  });
 };
 
 exports.details = async (user: User) => {
@@ -127,11 +145,13 @@ exports.getExchangeInfo = async (user: User) => {
     console.log('masteredChamps:', masteries);
     let recentChampString = '';
     let masteredChampString = '';
+    const infoText = accounts[userAcc.partner].additionalInfo;
+    let footNote = infoText ? `*Comentario: ${infoText}` : '';
     recentChamps.slice(0, 3).forEach(ch => (recentChampString += `* *${ch[0]}*\n`));
     masteries
       .slice(0, 6)
       .forEach(ch => (masteredChampString += `* *${ch.name}* - ${ch.mastery} puntos\n`));
     user.send(`Parece que la persona que ganó la lotería es:\n **${accounts[userAcc.partner].name}**
-			\n Sus campeones mas usados recientemente son:\n${recentChampString}\nSus mejores maestrías:\n${masteredChampString}`);
+			\n Sus campeones mas usados recientemente son:\n${recentChampString}\nSus mejores maestrías:\n${masteredChampString}\n${footNote}`);
   } else user.send('Lo lamento, aun no asigno a quien le daras skin para el intercambio U.U');
 };

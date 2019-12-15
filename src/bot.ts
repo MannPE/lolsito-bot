@@ -79,8 +79,11 @@ bot.on('message', (message: Message) => {
       case 'admin1996':
         admin.assignExchangePartners(author);
         break;
-      case 'champs':
-        args.slice(2);
+      case 'nota':
+        admin.wishlist(author, args.slice(2).join(' '));
+        break;
+      case 'msgall':
+        admin.messageExchangeUsers(bot, args.slice(2).join(' '));
         break;
     }
   }

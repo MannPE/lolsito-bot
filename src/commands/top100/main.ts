@@ -40,7 +40,7 @@ exports.getTop100 = async (channel: TextChannel, user: User, summonerName: strin
   }
 };
 
-export async function getRecentMostPlayedchamps(accountId: String) {
+export async function getRecentMostPlayedchamps(accountId: String): Promise<any[][]> {
   return new Promise(async (resolve, reject) => {
     try {
       console.log('getting matchlist for ', accountId);
